@@ -1,7 +1,11 @@
-pub mod polynome;
-
+mod polynome;
 pub use polynome::Polynomial;
 
-fn explain() {
-	println!("this regroups all math files and code")
+enum EquationResult {
+	AllReal,
+	No
+}
+
+fn solve(p: Polynomial) -> Result<Vec<f64>, EquationResult> {
+	Err(EquationResult::No)
 }
