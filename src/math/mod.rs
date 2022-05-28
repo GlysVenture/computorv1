@@ -1,5 +1,5 @@
 mod polynome;
-pub use polynome::Polynomial;
+pub use polynome::*;
 
 enum EquationResult {
 	AllReal,
