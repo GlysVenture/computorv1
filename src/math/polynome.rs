@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::fmt::{format, write};
 use crate::math::polynome::ParsePolyError::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Polynomial {
 	deg: i32,
 	monomes: Vec<(f64, i32)>,
@@ -15,6 +15,14 @@ pub enum ParsePolyError {
 	SyntaxError,
 	FloatError,
 	IntegerError
+}
+
+//Equation stuff
+#[derive(Debug)]
+pub enum EquationResult {
+	AllReal,
+	No,
+	Unable
 }
 
 impl Polynomial {
@@ -59,19 +67,76 @@ impl Polynomial {
 	pub fn degree(&self) -> i32{
 		self.deg
 	}
+
+	pub fn get_monome(&self, degree: i32) -> (f64, i32) {
+		let mut m = (0.0, 0);
+		for monome in self.monomes.iter() {
+			if monome.1 == degree {
+				m.0 += monome.0;
+				m.1 += monome.1;
+			}
+		}
+		m
+	}
+
+	pub fn solve(&self) -> Result<Vec<f64>, EquationResult> {
+		let mut p = self.clone();
+		p.cleanup();
+		match self {
+			Self {deg: 0, ..} => p.solve0(),
+			Self {deg: 1, ..} => p.solve1(),
+			Self {deg: 2, ..} => p.solve2(),
+			_ => Err(EquationResult::Unable)
+		}
+	}
+
+	fn solve0(&self) -> Result<Vec<f64>, EquationResult> {
+		if self.monomes.is_empty() { return Err(EquationResult::AllReal); }
+		Err(EquationResult::No)
+	}
+
+	fn solve1(&self) -> Result<Vec<f64>, EquationResult> {
+		let coeffs = (self.get_monome(0).0,
+					  self.get_monome(1).0);
+		if coeffs.0 != 0.0 {
+			if coeffs.1 != 0.0 {
+				return Ok(vec![-coeffs.0/coeffs.1]);
+			}
+			return Err(EquationResult::No);
+		}
+		else if coeffs.1 == 0.0 {
+			return Err(EquationResult::AllReal);
+		}
+		Ok(vec![0.0])
+	}
+
+	fn solve2(&self) -> Result<Vec<f64>, EquationResult> {
+		let coeffs = (self.get_monome(0).0,
+					  self.get_monome(1).0,
+					  self.get_monome(2).0);
+		//todo solve 2 degree
+		Err(EquationResult::No)
+	}
 }
 
 //Display
 impl std::fmt::Display for Polynomial {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		if self.monomes.is_empty() { return write!(f, "0"); }
 		let mut str = String::from("");
 		for it in self.monomes.iter() {
 			if it != self.monomes.first().unwrap() || it.0.is_sign_negative(){
 				if it.0.is_sign_negative() { str += "- "; }
 				if it.0.is_sign_positive() { str += "+ "; }
 			}
-			if it.0.abs() == 1.0 { str += &*format!("X^{}", it.1) }
-			else { str += &*format!("{}X^{}", it.0.abs(), it.1) }
+
+			if it.1 == 0 { str += &*format!("{}", it.0.abs()) }
+			else {
+				if it.0.abs() != 1.0 { str += &*format!("{}", it.0.abs()) }
+				if it.1 == 1 { str += "X" }
+				else { str += &*format!("X^{}", it.1) }
+			}
+
 			if it != self.monomes.last().unwrap() {str += " ";}
 		}
 		write!(f,"{}", str)
@@ -79,7 +144,6 @@ impl std::fmt::Display for Polynomial {
 }
 
 //Parse
-
 fn parse_monome(s: &str) -> Result<(f64, i32), ParsePolyError> {
 	let mut slice = s;
 	let cut = slice.find('*').ok_or(SyntaxError)?;
@@ -91,6 +155,7 @@ fn parse_monome(s: &str) -> Result<(f64, i32), ParsePolyError> {
 	Ok((coeff, deg))
 }
 
+//Trait FromStr for .parse()
 impl std::str::FromStr for Polynomial {
 	type Err = ParsePolyError;
 
