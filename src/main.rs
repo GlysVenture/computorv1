@@ -1,9 +1,8 @@
 mod math;
 
-use std::io;
 use crate::math::*;
 
-fn check_err(e: ParsePolyError) -> Result<Polynomial, String>{
+fn poly_err(e: ParsePolyError) -> Result<Polynomial, String>{
     match e {
         ParsePolyError::SyntaxError => {Err("Polynomial syntax error".to_owned()) }
         ParsePolyError::IntegerError => {Err("Integer error".to_owned()) }
@@ -16,12 +15,14 @@ fn check_err(e: ParsePolyError) -> Result<Polynomial, String>{
 
 fn main() -> Result<(), String>{
 
-    let p = std::env::args().nth(1).ok_or("Arguments")?.parse::<Polynomial>().or_else(check_err)?;
+    // let input = std::env::args().nth(1).ok_or("Arguments")?;
+    // let p = equ_to_poly(input.as_str())?;
 
-    let p2 = "3*X^4 + 1*X^2 - 5.4 * X^ 23".parse::<Polynomial>().or_else(check_err)?;
+    let p2 = equ_to_poly("-1*X ^ 2 + 5.5 * X ^ 2 = 2.3 * X^3 + 4.5 * X ^ 2 - 7 * X ^ 4")?;
 
     println!("test: {}", p2);
-    println!("input: {}", p);
-    println!("input debug: {:?}", p);
+    println!("input debug: {:?}", p2);
+    // println!("input: {}", p);
+    // println!("input debug: {:?}", p);
     Ok(())
 }

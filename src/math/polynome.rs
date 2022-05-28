@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::fmt::{format, write};
 use crate::math::polynome::ParsePolyError::*;
 
@@ -24,16 +25,35 @@ impl Polynomial {
 		}
 	}
 	pub fn add(&mut self, monome: (f64, i32)) {
+		self.deg = max(self.deg, monome.1);
 		self.monomes.push(monome);
 	}
 
 	fn substract(&mut self, monome: (f64, i32)) {
+		self.deg = max(self.deg, monome.1);
 		let tmp = (-monome.0, monome.1);
 		self.monomes.push(tmp);
 	}
 
 	pub fn cleanup(&mut self) {
+		for i in 0..self.monomes.len() {
+			if i >= self.monomes.len() { break; }
 
+			let mut sum: (f64, i32) = self.monomes[i];
+			for m in self.monomes[i + 1..].iter_mut() {
+				if m.1 == sum.1 {
+					sum.0 += m.0;
+					m.0 = 0.0;
+				}
+			}
+			self.monomes[i] = sum;
+		}
+		self.monomes.retain(|&m| m.0 != 0.0);
+		self.monomes.sort_by(|m, m2| {
+			m2.1.cmp(&m.1)
+		});
+		self.deg = self.monomes.iter()
+			.map(|m| m.1).max().unwrap_or(0);
 	}
 
 	pub fn degree(&self) -> i32{
@@ -76,7 +96,7 @@ impl std::str::FromStr for Polynomial {
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		if s.find(|c: char| {
-			!matches!(c, 'X' | '*' | '.' | '^' | '+' | '-') && !c.is_numeric() && !c.is_whitespace()
+			!matches!(c, 'X' | '*' | '.' | '^' | '+' | '-' | 'x') && !c.is_numeric() && !c.is_whitespace()
 		}).is_some() { return  Err(UnknownToken) }
 
 		let mut p = Polynomial::new();
