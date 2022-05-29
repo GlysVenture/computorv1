@@ -1,5 +1,6 @@
 mod poly_solve;
 
+pub use poly_solve::EquationResult;
 use std::cmp::max;
 use ParsePolyError::*;
 
@@ -25,12 +26,12 @@ impl Polynomial {
 			monomes: vec![]
 		}
 	}
-	pub fn add(&mut self, monome: (f64, i32)) {
+	pub fn add_monome(&mut self, monome: (f64, i32)) {
 		self.deg = max(self.deg, monome.1);
 		self.monomes.push(monome);
 	}
 
-	fn substract(&mut self, monome: (f64, i32)) {
+	pub fn substract_monome(&mut self, monome: (f64, i32)) {
 		self.deg = max(self.deg, monome.1);
 		let tmp = (-monome.0, monome.1);
 		self.monomes.push(tmp);
@@ -109,7 +110,7 @@ fn parse_monome(s: &str) -> Result<(f64, i32), ParsePolyError> {
 	Ok((coeff, deg))
 }
 
-//Trait FromStr for .parse()
+//Trait FromStr for .parse() //todo better with X^3, 4, 3X, - - etc
 impl std::str::FromStr for Polynomial {
 	type Err = ParsePolyError;
 
@@ -128,13 +129,39 @@ impl std::str::FromStr for Polynomial {
 		loop {
 			let cut = mut_str.find(['-','+'])
 				.unwrap_or(mut_str.len());
-			if positive { p.add(parse_monome(&mut_str[0..cut])?); }
-			else { p.substract(parse_monome(&mut_str[0..cut])?); }
+			if positive { p.add_monome(parse_monome(&mut_str[0..cut])?); }
+			else { p.substract_monome(parse_monome(&mut_str[0..cut])?); }
 			if cut == mut_str.len() { break; }
 			if mut_str.chars().nth(cut).unwrap_or('+') == '-' { positive = false }
 			else { positive = true }
 			mut_str = &mut_str[cut + 1..mut_str.len()];
 		}
 		Ok(p)
+	}
+}
+
+//+ operator
+impl std::ops::Add<Polynomial> for Polynomial {
+	type Output = Polynomial;
+
+	fn add(mut self, _rhs: Polynomial) -> Self::Output {
+		for monome  in _rhs.monomes {
+			self.add_monome(monome);
+		}
+		self.cleanup();
+		self
+	}
+}
+
+//- operator
+impl std::ops::Sub<Polynomial> for Polynomial {
+	type Output = Polynomial;
+
+	fn sub(mut self, _rhs: Polynomial) -> Self::Output {
+		for monome  in _rhs.monomes {
+			self.substract_monome(monome);
+		}
+		self.cleanup();
+		self
 	}
 }

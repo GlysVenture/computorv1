@@ -4,19 +4,14 @@ pub use polynome::*;
 
 
 //Warning, might not like situations like " ...4 + -2" where will not swap signs todo?
-pub fn equ_to_poly(str: &str) -> Result<Polynomial, String> {
-	let mut s: String = str.to_owned();
+pub fn equ_to_poly(s: &str) -> Result<Polynomial, String> {
 	let cut = s.find('=').ok_or("Equation misses = sign")?;
-	s = s.replace('=', "-");
-	let out = s[cut + 1..s.len()]
-		.replace('-', "@")
-		.replace('+', "-")
-		.replace('@', "+");
-	s = s[..cut + 1].to_owned() + out.as_str();
 
-
-	let mut poly = s.parse::<Polynomial>()
+	let mut poly = s[..cut].parse::<Polynomial>()
 		.or_else(|e| Err(format!("{:?}", e)))?;
+	let poly_right = s[cut + 1..].parse::<Polynomial>()
+		.or_else(|e| Err(format!("{:?}", e)))?;
+	poly = poly - poly_right;
 	poly.cleanup();
 	Ok(poly)
 }
