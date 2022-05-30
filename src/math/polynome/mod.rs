@@ -100,12 +100,23 @@ impl std::fmt::Display for Polynomial {
 
 //Parse
 fn parse_monome(s: &str) -> Result<(f64, i32), ParsePolyError> {
-	let slice = s;
-	let cut = slice.find('*').ok_or(SyntaxError)?;
-	let cut2 = slice.find('^').ok_or(SyntaxError)?;
-	let coeff = s[0..cut].trim().parse::<f64>().or(Err(FloatError))?;
-	if !slice[cut + 1..cut2].trim().eq_ignore_ascii_case("X") { return Err(SyntaxError) }
-	let deg = s[cut2 + 1..slice.len()].trim().parse::<i32>().or(Err(IntegerError))?;
+	if s.find('X').is_none() {
+		return Ok((s.parse::<f64>().map_err(|_| SyntaxError)?, 0));
+	}
+	let xpos = s.find('X').unwrap();
+	let mut deg = 0;
+	let mut is_pow = false;
+
+	let mut cut = s.find('*').unwrap_or(xpos);
+	if cut == xpos { is_pow = true; }
+	let mut cut2 = if s.find('^').is_some() { s.find('^').unwrap() }
+		else { deg = 1; xpos };
+	let coeff = s[..cut].trim().parse::<f64>().or(Err(FloatError))?;
+	if deg != 1 { deg = s[cut2 + 1..].trim().parse::<i32>().or(Err(IntegerError))? }
+	else { cut2 += 1; }
+	if cut != xpos { cut += 1; }
+
+	if !s[cut..cut2].trim().eq_ignore_ascii_case("X") { return Err(SyntaxError); }
 	if deg < 0 { return Err(InvalidDegree) }
 	Ok((coeff, deg))
 }
