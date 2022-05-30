@@ -1,6 +1,8 @@
 mod polynome;
+mod complex;
 
 pub use polynome::*;
+pub use complex::*;
 
 
 //Warning, might not like situations like " ...4 + -2" where will not swap signs todo?

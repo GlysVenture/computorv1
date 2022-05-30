@@ -27,7 +27,7 @@ fn main() -> Result<(), String>{
     }
     else {
         match result.unwrap_err() {
-            EquationResult::AllReal => { println!("Solution: ℝ") }
+            EquationResult::All => { println!("Solution: ℂ") }
             EquationResult::No => { println!("Solution: {{∅}}") }
             EquationResult::Unable => { println!("Unable to find solution, degree too high") }
         }
