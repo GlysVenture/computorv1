@@ -30,7 +30,7 @@ impl Polynomial {
 	fn solve1(&self) -> Result<Vec<Complex>, EquationResult> {
 		let coeffs = (self.get_monome(0).0,
 					  self.get_monome(1).0);
-		Ok(vec![Complex::new(coeffs.0/coeffs.1, 0.0)])
+		Ok(vec![Complex::new(-coeffs.0/coeffs.1, 0.0)])
 	}
 
 	fn solve2(&self) -> Result<Vec<Complex>, EquationResult> {
